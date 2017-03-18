@@ -10,14 +10,39 @@ askForSourceAndTargetTexFile(texFiles).then(function(answers) {
     var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString)
     uniqueTerms = terms.filter((v, i, a) => i === a.indexOf(v));
     warnIfTermsAreSubsetOfOthers(uniqueTerms);
+    const target = answers.target;
+    const targetContent = readFileContent(target);
+    transformTarget(targetContent, uniqueTerms, (textAsArray) => {
+        askOverwriteFile(target).then((answers) => {
+            const shouldOverwrite = answers.check == 'Yes';
+            const completeText = rebuildText(textAsArray);
+            try {
+	            console.log('overwriting file '+target+'...');
+	            fs.writeFileSync(target, completeText);
+	            console.log('successfully overwritten file...');
+            } catch (e) {
+            	console.log(e);
+            }
+            awaitInputToExit();
 
-    const targetContent = readFileContent(answers.target);
-    transformTarget(targetContent, uniqueTerms);
 
+        });
+    });
 });
 
+function awaitInputToExit() {
+    console.log('Press any key to exit');
 
-function transformTarget(targetContent, terms) {
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.on('data', process.exit.bind(process, 0));
+}
+
+function rebuildText(textAsArray) {
+    return textAsArray.reduce((a, v) => a + v, '');
+}
+
+function transformTarget(targetContent, terms, onFinished) {
     if (terms.length < 1) return;
 
     const termIterator = {
@@ -33,11 +58,8 @@ function transformTarget(targetContent, terms) {
 
     var textAsArray = splitBySentence(targetContent);
 
-    askAndCheckNextTermRecursive(termIterator, textAsArray, (textAsArray) => {
-    	console.log('finished...');
-    	console.log(textAsArray);
-    	console.log('finished...');
-    });
+    askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished);
+
 }
 
 function splitBySentence(text) {
@@ -64,7 +86,7 @@ function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
 
 function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished) {
     if (!termInTextIterator.hasNext()) {
-    	console.log("no more terms in text");
+        console.log("no more terms in text");
         applyTextReplaces(termInTextIterator.data, textAsArray);
         onFinished(textAsArray);
         return;
@@ -165,6 +187,15 @@ function askReplaceTerm(term) {
         type: 'list',
         name: 'check',
         message: `Do you want to overwrite '${term}' with \\textit{${term}}?`,
+        choices: ['Yes', 'No']
+    }]);
+}
+
+function askOverwriteFile(filename) {
+    return inquirer.prompt([{
+        type: 'list',
+        name: 'check',
+        message: `Job finished. Do you want to overwrite the file content of ${filename} with your new content?`,
         choices: ['Yes', 'No']
     }]);
 }
