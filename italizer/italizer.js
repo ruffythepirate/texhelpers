@@ -24,86 +24,99 @@ function transformTarget(targetContent, terms) {
         terms: terms,
         index: 0,
         next: function() {
-            return this.terms[this.index++] },
+            return this.terms[this.index++]
+        },
         hasNext: function() {
-            return this.index < this.terms.length }
+            return this.index < this.terms.length
+        }
     }
 
     var textAsArray = splitBySentence(targetContent);
 
-    askAndCheckNextTermRecursive(termIterator,textAsArray);
+    askAndCheckNextTermRecursive(termIterator, textAsArray);
 }
 
 function splitBySentence(text) {
-	return text.split(/[.\n]/);
+    return text.split(/[.\n]/);
 }
 
 function askAndCheckNextTermRecursive(termIterator, textAsArray) {
     const term = termIterator.next();
-    console.log('hello');
     askCheckTerm(term).then(function(answers) {
         const shouldCheck = answers.check == 'Yes';
         if (shouldCheck) {
             console.log('Should check!');
             const it = createTermInTextIterator(term, textAsArray);
-            highlightFirstTerm(it, term, textAsArray);
+            checkNextTermInTextRecursive(it, textAsArray);
         } else {
             askAndCheckNextTermRecursive(termIterator, textAsArray);
         }
     });
 }
 
-function createTermInTextIterator(term, textAsArray) {
-	const allEntries = 
-	textAsArray	
-		.map((v,i) => locations(term, v))
-		.reduce((a, v, i) => {v.forEach(v => a.push({row: i, start: v, term: term})); return a;}, []);
+function checkNextTermInTextRecursive(termInTextIterator, textAsArray) {
+    const position = termInTextIterator.next();
+    highlightPosition(position, textAsArray);
+    askReplaceTerm(position.term).then(function(answers) {
+        const shouldReplace = answers.check == 'Yes';
+        if (shouldReplace) {
+            position.replace = true;
+        }
+        checkNextTermInTextRecursive(termInTextIterator);
+    });
+}
 
-	const termInTextIterator = {
+function createTermInTextIterator(term, textAsArray) {
+    const allEntries =
+        textAsArray
+        .map((v, i) => locations(term, v))
+        .reduce((a, v, i) => { v.forEach(v => a.push({ row: i, start: v, term: term }));
+            return a; }, []);
+
+    const termInTextIterator = {
         data: allEntries,
         index: 0,
         next: function() {
-            return this.data[this.index++] },
+            return this.data[this.index++]
+        },
         hasNext: function() {
-            return this.index < this.data.length }
+            return this.index < this.data.length
+        }
     }
 
     return termInTextIterator;
 }
 
-function locations(substring,string){
-  var a=[],i=-1;
-  while((i=string.indexOf(substring,i+1)) >= 0) a.push(i);
-  return a;
+function locations(substring, string) {
+    var a = [],
+        i = -1;
+    while ((i = string.indexOf(substring, i + 1)) >= 0) a.push(i);
+    return a;
 }
 
-function highlightFirstTerm(iterator, term, textAsArray) {
-	var firstPosition = iterator.next();
+function highlightPosition(position, textAsArray) {
 
-	// for(var i = 0; i < textAsArray.length; i++ ) {
-		// if(textAsArray[i].indexOf(term) > -1) {
-			var i = firstPosition.row;
+    var i = position.row;
+    const term = position.term;
 
-			printRows(i - 3, i - 1, textAsArray, console.log);
-			const highlightedRow = getHighlightedRow(firstPosition, textAsArray[firstPosition.row]);
-			console.log(highlightedRow);
-			printRows(i + 1 , i + 3, textAsArray, console.log);
-		// }
-	// }
+    printRows(i - 3, i - 1, textAsArray, console.log);
+    const highlightedRow = getHighlightedRow(position, textAsArray[position.row]);
+    console.log(highlightedRow);
+    printRows(i + 1, i + 3, textAsArray, console.log);
 }
 
 function getHighlightedRow(highlightInfo, row) {
-	const start = highlightInfo.start;
-	const term = highlightInfo.term;
-	return row.substr(0, start) + term.red.underline + row.substr(start+term.length, row.length);
+    const start = highlightInfo.start;
+    const term = highlightInfo.term;
+    return row.substr(0, start) + term.red.underline + row.substr(start + term.length, row.length);
 }
 
 function printRows(startIndex, endIndex, textAsArray, printMethod) {
-	startIndex = Math.max(startIndex, 0);
-	endIndex = Math.min(textAsArray.length, endIndex);
-	for(i = startIndex; i < endIndex; i++) {
-		printMethod('> '.red + textAsArray[i]);
-	}
+    startIndex = Math.max(startIndex, 0);
+    endIndex = Math.min(textAsArray.length, endIndex);
+    for (i = startIndex; i < endIndex; i++) {
+        printMethod('> '.red + textAsArray[i]);
+    }
 }
 
 function askCheckTerm(term) {
@@ -111,6 +124,15 @@ function askCheckTerm(term) {
         type: 'list',
         name: 'check',
         message: `Should the term '${term}' be checked?`,
+        choices: ['Yes', 'No']
+    }]);
+}
+
+function askReplaceTerm(term) {
+    return inquirer.prompt([{
+        type: 'list',
+        name: 'check',
+        message: `Do you want to overwrite '${term}' with \\textit{${term}}?`,
         choices: ['Yes', 'No']
     }]);
 }
