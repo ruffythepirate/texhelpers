@@ -26,8 +26,8 @@ askForSourceAndTargetTexFile(texFiles).then(function(answers) {
 function overwriteTargetFile(filename, textAsArray) {
     const completeText = rebuildText(textAsArray);
     try {
-        console.log('overwriting file ' + target + '...');
-        fs.writeFileSync(target, completeText);
+        console.log('overwriting file ' + filename + '...');
+        fs.writeFileSync(filename, completeText);
         console.log('successfully overwritten file...');
     } catch (e) {
         console.log(e);
@@ -67,7 +67,25 @@ function transformTarget(targetContent, terms, onFinished) {
 }
 
 function splitBySentence(text) {
-    return text.split(/[.\n]/);
+	var regEx = /[.\n]/g
+	const tokens = [];
+	var lastIndex = 0
+	while( (match = regEx.exec(text)) != null) {
+		tokens.push(text.substring(lastIndex, match.index));
+		lastIndex = match.index;
+	}
+
+	if(lastIndex < text.length) {
+		tokens.push(text.substring(lastIndex, text.length));
+	}
+ 
+    assert( text.length === tokens.reduce((a,v) => a+v.length, 0), 'Split text has lost chars..!');
+
+    return tokens;
+}
+
+function assert(condition, message) {
+	if(!condition) throw message;
 }
 
 function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
@@ -79,7 +97,6 @@ function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
     askCheckTerm(term).then(function(answers) {
         const shouldCheck = answers.check == 'Yes';
         if (shouldCheck) {
-            console.log('Should check!');
             const it = createTermInTextIterator(term, textAsArray);
             checkNextTermInTextRecursive(it, textAsArray, (newTextAsArray) => askAndCheckNextTermRecursive(termIterator, newTextAsArray, onFinished));
         } else {
@@ -90,7 +107,6 @@ function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
 
 function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished) {
     if (!termInTextIterator.hasNext()) {
-        console.log("no more terms in text");
         applyTextReplaces(termInTextIterator.data, textAsArray);
         onFinished(textAsArray);
         return;
@@ -146,9 +162,7 @@ function locations(regex, string) {
 }
 
 function escapeRegExp(str) {
-    console.log(str);
     var result = str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-    console.log(result);
     return result;
 }
 
