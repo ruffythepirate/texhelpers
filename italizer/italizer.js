@@ -2,6 +2,8 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 require('terminal-colors');
 
+const fileHelpers = require('../common/FileHelpers');
+
 if (process.argv.length < 3) {
 	console.log('Please input the path to you working directory as a parameter...');
 	awaitInputToExit();
@@ -9,16 +11,19 @@ if (process.argv.length < 3) {
 
 var folder = process.argv[2];
 
-const texFiles = getTexFiles(folder);
+const texFiles = fileHelpers.getTexFiles(folder);
 
-askForSourceAndTargetTexFile(texFiles).then(function(answers) {
-    const sourceContent = readFileContent(answers.source);
+fileHelpers.askForSourceAndTargetTexFile(texFiles,
+		'Select file that contains italized words.',
+		'Select file that should get words italized')
+	.then(function(answers) {
+    const sourceContent = fileHelpers.readFileContent(answers.source);
 
     var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString)
     uniqueTerms = terms.filter((v, i, a) => i === a.indexOf(v));
     warnIfTermsAreSubsetOfOthers(uniqueTerms);
     const target = answers.target;
-    const targetContent = readFileContent(target);
+    const targetContent = fileHelpers.readFileContent(target);
     transformTarget(targetContent, uniqueTerms, (textAsArray) => {
         askOverwriteFile(target).then((answers) => {
             const shouldOverwrite = answers.check == 'Yes';
@@ -263,44 +268,4 @@ function collectTermsInFile(regex, fileContent) {
         result.push(match[1])
     }
     return result;
-}
-
-function readFileContent(filename) {
-    return fs.readFileSync(filename, { encoding: 'utf8', flag: 'r' });
-}
-
-function askForSourceAndTargetTexFile(texFiles) {
-    return inquirer.prompt([{
-        type: 'list',
-        name: 'source',
-        message: 'Select file that contains italized words.',
-        choices: texFiles
-    }, {
-        type: 'list',
-        name: 'target',
-        message: 'Select file that should get words italized',
-        choices: texFiles
-    }])
-}
-
-function getTexFiles(folder) {
-    return getFiles(folder, '.tex', []);
-}
-
-function getFiles(dir, ending, files_) {
-    files_ = files_ || [];
-    var files = fs.readdirSync(dir);
-    for (var i in files) {
-        var name = dir + '/' + files[i];
-        if (fs.statSync(name).isDirectory()) {
-            getFiles(name, ending, files_);
-        } else if (filterFile(name, ending)) {
-            files_.push(name);
-        }
-    }
-    return files_;
-}
-
-function filterFile(fileName, ending) {
-    return !ending || fileName.endsWith(ending)
 }
