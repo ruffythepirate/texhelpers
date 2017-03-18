@@ -141,7 +141,7 @@ function applyTextReplaces(positions, textAsArray) {
 function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
-        .map((v, i) => locations(new RegExp(//'(^\\textit\{)' 
+        .map((v, i) => locations(new RegExp('(?!\\textit\{)' +
         	escapeRegExp(term), 'g'), v))
         .reduce((a, v, i) => {
             v.forEach(v => a.push({ row: i, start: v, term: term }));
