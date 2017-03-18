@@ -7,16 +7,24 @@ askForSourceAndTargetTexFile(texFiles).then(function(answers) {
 	sourceContent = readFileContent(answers.source);
 
 	var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString)
-
-	console.log('hi')
 	uniqueTerms = terms.filter((v,i,a) => i === a.indexOf(v)); 
-	console.log(uniqueTerms)
-	console.log('ho')
 
-
+	warnIfTermsAreSubsetOfOthers(uniqueTerms);
 });
 
+function warnIfTermsAreSubsetOfOthers(uniqueArray) {
+	const duplicateTerms = getTermsContainedInOtherTerms(uniqueArray);
+	if(duplicateTerms.length > 0) {
+		console.log("WARNING: The following terms are subsets of other terms:");
+		console.log(duplicateTerms);
+	}
+}
 
+function getTermsContainedInOtherTerms(uniqueArray) {
+	return uniqueArray.filter((v,i,a) => 
+		a.filter(v1 => v1.indexOf(v) > -1 && v1.length > v.length).length > 1
+	)
+}
 
 function trimString(string) {
 	if(string && string.trim) {
