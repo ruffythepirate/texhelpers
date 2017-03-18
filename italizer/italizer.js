@@ -2,8 +2,6 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 require('terminal-colors');
 
-console.log(process);
-
 if (process.argv.length < 3) {
 	console.log('Please input the path to you working directory as a parameter...');
 	awaitInputToExit();
@@ -80,8 +78,9 @@ function splitBySentence(text) {
 	const tokens = [];
 	var lastIndex = 0
 	while( (match = regEx.exec(text)) != null) {
-		tokens.push(text.substring(lastIndex, match.index));
-		lastIndex = match.index;
+		var thisIndex = Math.min(match.index + 1, text.length)
+		tokens.push(text.substring(lastIndex, thisIndex));
+		lastIndex = thisIndex;
 	}
 
 	if(lastIndex < text.length) {
@@ -142,7 +141,8 @@ function applyTextReplaces(positions, textAsArray) {
 function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
-        .map((v, i) => locations(new RegExp('(^\\textit\{)' + escapeRegExp(term), 'g'), v))
+        .map((v, i) => locations(new RegExp(//'(^\\textit\{)' 
+        	escapeRegExp(term), 'g'), v))
         .reduce((a, v, i) => {
             v.forEach(v => a.push({ row: i, start: v, term: term }));
             return a;
