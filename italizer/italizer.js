@@ -1,14 +1,31 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
 
-// inquirer.prompt([ Pass your questions in here ]).then(function (answers) {
-    // Use user feedback for... whatever!!
-// });
+const texFiles = getTexFiles('.');
 
-const texFileNames = getTexFiles('.');
+askForSourceAndTargetTexFile(texFiles).then(function(answers) {
+	console.log(JSON.stringify(answers, null, '  '));
+});
 
-function askForTexFile() {
 
+
+
+
+function askForSourceAndTargetTexFile(texFiles) {
+   return inquirer.prompt([
+  {
+    type: 'list',
+    name: 'source',
+    message: 'Select file that contains italized words.',
+    choices: texFiles
+  },
+  {
+    type: 'list',
+    name: 'target',
+    message: 'Select file that should get words italized',
+    choices: texFiles
+  }
+  ])
 }
 
 function getTexFiles(folder) {
