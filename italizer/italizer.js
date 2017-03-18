@@ -2,7 +2,16 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 require('terminal-colors');
 
-const texFiles = getTexFiles('.');
+console.log(process);
+
+if (process.argv.length < 3) {
+	console.log('Please input the path to you working directory as a parameter...');
+	awaitInputToExit();
+}
+
+var folder = process.argv[2];
+
+const texFiles = getTexFiles(folder);
 
 askForSourceAndTargetTexFile(texFiles).then(function(answers) {
     const sourceContent = readFileContent(answers.source);
