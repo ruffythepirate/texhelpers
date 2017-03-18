@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
+require('terminal-colors');
 
 const texFiles = getTexFiles('.');
 
@@ -30,24 +31,42 @@ function transformTarget(targetContent, terms) {
 
     var textAsArray = splitBySentence(targetContent);
 
-    askAndCheckNextTermRecursive(termIterator);
+    askAndCheckNextTermRecursive(termIterator,textAsArray);
 }
 
 function splitBySentence(text) {
-	return text.split(/[.]/);
+	return text.split(/[.\n]/);
 }
 
-function askAndCheckNextTermRecursive(termIterator) {
+function askAndCheckNextTermRecursive(termIterator, textAsArray) {
     const term = termIterator.next();
     console.log('hello');
     askCheckTerm(term).then(function(answers) {
         const shouldCheck = answers.check == 'Yes';
         if (shouldCheck) {
             console.log('Should check!');
+            highlightFirstTerm(textAsArray, term);
         } else {
-            askAndCheckNextTermRecursive(termIterator);
+            askAndCheckNextTermRecursive(termIterator, textAsArray);
         }
     });
+}
+
+function highlightFirstTerm(textAsArray, term) {
+	for(var i = 0; i < textAsArray.length; i++ ) {
+		if(textAsArray[i].indexOf(term) > -1) {
+			printRows(i - 3, i - 1, textAsArray, console.log);
+			printRows(i + 1 , i + 3, textAsArray, console.log);
+		}
+	}
+}
+
+function printRows(startIndex, endIndex, textAsArray, printMethod) {
+	startIndex = Math.max(startIndex, 0);
+	endIndex = Math.min(textAsArray.length, endIndex);
+	for(i = startIndex; i < endIndex; i++) {
+		printMethod('> '.red + textAsArray[i]);
+	}
 }
 
 function askCheckTerm(term) {
