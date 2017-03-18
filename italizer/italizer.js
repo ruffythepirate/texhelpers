@@ -4,12 +4,29 @@ const fs = require('fs');
 const texFiles = getTexFiles('.');
 
 askForSourceAndTargetTexFile(texFiles).then(function(answers) {
-	console.log(JSON.stringify(answers, null, '  '));
+	sourceContent = readFileContent(answers.source);
+
+	collectTermsInFile(/\\textit{(.*?)}/g, sourceContent)
+
+
 });
 
 
 
 
+
+function collectTermsInFile(regex, fileContent) {
+	const result = [];
+	while ((match = regex.exec( fileContent )) != null)
+{
+    result.push(match[1])
+	}
+	console.log(result);
+}
+
+function readFileContent(filename) {
+	return fs.readFileSync(filename, {encoding: 'utf8', flag: 'r'});
+}
 
 function askForSourceAndTargetTexFile(texFiles) {
    return inquirer.prompt([
