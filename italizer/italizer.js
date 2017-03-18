@@ -45,20 +45,57 @@ function askAndCheckNextTermRecursive(termIterator, textAsArray) {
         const shouldCheck = answers.check == 'Yes';
         if (shouldCheck) {
             console.log('Should check!');
-            highlightFirstTerm(textAsArray, term);
+            const it = createTermInTextIterator(term, textAsArray);
+            highlightFirstTerm(it, term, textAsArray);
         } else {
             askAndCheckNextTermRecursive(termIterator, textAsArray);
         }
     });
 }
 
-function highlightFirstTerm(textAsArray, term) {
-	for(var i = 0; i < textAsArray.length; i++ ) {
-		if(textAsArray[i].indexOf(term) > -1) {
+function createTermInTextIterator(term, textAsArray) {
+	const allEntries = 
+	textAsArray	
+		.map((v,i) => locations(term, v))
+		.reduce((a, v, i) => {v.forEach(v => a.push({row: i, start: v, term: term})); return a;}, []);
+
+	const termInTextIterator = {
+        data: allEntries,
+        index: 0,
+        next: function() {
+            return this.data[this.index++] },
+        hasNext: function() {
+            return this.index < this.data.length }
+    }
+
+    return termInTextIterator;
+}
+
+function locations(substring,string){
+  var a=[],i=-1;
+  while((i=string.indexOf(substring,i+1)) >= 0) a.push(i);
+  return a;
+}
+
+function highlightFirstTerm(iterator, term, textAsArray) {
+	var firstPosition = iterator.next();
+
+	// for(var i = 0; i < textAsArray.length; i++ ) {
+		// if(textAsArray[i].indexOf(term) > -1) {
+			var i = firstPosition.row;
+
 			printRows(i - 3, i - 1, textAsArray, console.log);
+			const highlightedRow = getHighlightedRow(firstPosition, textAsArray[firstPosition.row]);
+			console.log(highlightedRow);
 			printRows(i + 1 , i + 3, textAsArray, console.log);
-		}
-	}
+		// }
+	// }
+}
+
+function getHighlightedRow(highlightInfo, row) {
+	const start = highlightInfo.start;
+	const term = highlightInfo.term;
+	return row.substr(0, start) + term.red.underline + row.substr(start+term.length, row.length);
 }
 
 function printRows(startIndex, endIndex, textAsArray, printMethod) {
