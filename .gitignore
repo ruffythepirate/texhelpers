@@ -8,3 +8,5 @@ packages/*
 */logs/*
 */bin/*
 */obj/*
+
+*/node_modules
