@@ -1,0 +1,10 @@
+*.xml
+*.dll
+*.mdb
+*.dll.mdb
+*.log
+
+packages/*
+*/logs/*
+*/bin/*
+*/obj/*
