@@ -33,28 +33,43 @@ function transformTarget(targetContent, terms) {
 
     var textAsArray = splitBySentence(targetContent);
 
-    askAndCheckNextTermRecursive(termIterator, textAsArray);
+    askAndCheckNextTermRecursive(termIterator, textAsArray, (textAsArray) => {
+    	console.log('finished...');
+    	console.log(textAsArray);
+    	console.log('finished...');
+    });
 }
 
 function splitBySentence(text) {
     return text.split(/[.\n]/);
 }
 
-function askAndCheckNextTermRecursive(termIterator, textAsArray) {
+function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
+    if (!termIterator.hasNext()) {
+        onFinished(textAsArray);
+        return;
+    }
     const term = termIterator.next();
     askCheckTerm(term).then(function(answers) {
         const shouldCheck = answers.check == 'Yes';
         if (shouldCheck) {
             console.log('Should check!');
             const it = createTermInTextIterator(term, textAsArray);
-            checkNextTermInTextRecursive(it, textAsArray);
+            checkNextTermInTextRecursive(it, textAsArray, (newTextAsArray) => askAndCheckNextTermRecursive(termIterator, newTextAsArray, onFinished));
         } else {
-            askAndCheckNextTermRecursive(termIterator, textAsArray);
+            askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished);
         }
     });
 }
 
-function checkNextTermInTextRecursive(termInTextIterator, textAsArray) {
+function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished) {
+    if (!termInTextIterator.hasNext()) {
+    	console.log("no more terms in text");
+        applyTextReplaces(termInTextIterator.data, textAsArray);
+        onFinished(textAsArray);
+        return;
+    }
+
     const position = termInTextIterator.next();
     highlightPosition(position, textAsArray);
     askReplaceTerm(position.term).then(function(answers) {
@@ -62,16 +77,25 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray) {
         if (shouldReplace) {
             position.replace = true;
         }
-        checkNextTermInTextRecursive(termInTextIterator);
+        checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished);
     });
+}
+
+function applyTextReplaces(positions, textAsArray) {
+    positions
+        .filter(p => p.replace)
+        .reverse()
+        .forEach(p => textAsArray[p.row] = replacePosition(p, textAsArray));
 }
 
 function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
         .map((v, i) => locations(term, v))
-        .reduce((a, v, i) => { v.forEach(v => a.push({ row: i, start: v, term: term }));
-            return a; }, []);
+        .reduce((a, v, i) => {
+            v.forEach(v => a.push({ row: i, start: v, term: term }));
+            return a;
+        }, []);
 
     const termInTextIterator = {
         data: allEntries,
@@ -95,7 +119,6 @@ function locations(substring, string) {
 }
 
 function highlightPosition(position, textAsArray) {
-
     var i = position.row;
     const term = position.term;
 
@@ -103,6 +126,15 @@ function highlightPosition(position, textAsArray) {
     const highlightedRow = getHighlightedRow(position, textAsArray[position.row]);
     console.log(highlightedRow);
     printRows(i + 1, i + 3, textAsArray, console.log);
+}
+
+function replacePosition(position, textAsArray) {
+    const i = position.row;
+    const row = textAsArray[i];
+    const start = position.start;
+    const term = position.term;
+
+    return row.substring(0, start) + `\\textit{${term}}` + row.substr(start + term.length, row.length);
 }
 
 function getHighlightedRow(highlightInfo, row) {
