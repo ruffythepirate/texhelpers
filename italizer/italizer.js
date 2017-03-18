@@ -15,20 +15,24 @@ askForSourceAndTargetTexFile(texFiles).then(function(answers) {
     transformTarget(targetContent, uniqueTerms, (textAsArray) => {
         askOverwriteFile(target).then((answers) => {
             const shouldOverwrite = answers.check == 'Yes';
-            const completeText = rebuildText(textAsArray);
-            try {
-	            console.log('overwriting file '+target+'...');
-	            fs.writeFileSync(target, completeText);
-	            console.log('successfully overwritten file...');
-            } catch (e) {
-            	console.log(e);
+            if (shouldOverwrite) {
+                overwriteTargetFile(target, textAsArray);
             }
             awaitInputToExit();
-
-
         });
     });
 });
+
+function overwriteTargetFile(filename, textAsArray) {
+    const completeText = rebuildText(textAsArray);
+    try {
+        console.log('overwriting file ' + target + '...');
+        fs.writeFileSync(target, completeText);
+        console.log('successfully overwritten file...');
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 function awaitInputToExit() {
     console.log('Press any key to exit');
@@ -113,7 +117,7 @@ function applyTextReplaces(positions, textAsArray) {
 function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
-        .map((v, i) => locations(term, v))
+        .map((v, i) => locations(new RegExp('(^\\textit\{)' + escapeRegExp(term), 'g'), v))
         .reduce((a, v, i) => {
             v.forEach(v => a.push({ row: i, start: v, term: term }));
             return a;
@@ -133,11 +137,19 @@ function createTermInTextIterator(term, textAsArray) {
     return termInTextIterator;
 }
 
-function locations(substring, string) {
-    var a = [],
-        i = -1;
-    while ((i = string.indexOf(substring, i + 1)) >= 0) a.push(i);
+function locations(regex, string) {
+    const a = [];
+    while ((match = regex.exec(string)) != null) {
+        a.push(match.index);
+    }
     return a;
+}
+
+function escapeRegExp(str) {
+    console.log(str);
+    var result = str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    console.log(result);
+    return result;
 }
 
 function highlightPosition(position, textAsArray) {
@@ -223,6 +235,7 @@ function trimString(string) {
 
 function collectTermsInFile(regex, fileContent) {
     const result = [];
+
     while ((match = regex.exec(fileContent)) != null) {
         result.push(match[1])
     }
