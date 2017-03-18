@@ -6,22 +6,32 @@ const texFiles = getTexFiles('.');
 askForSourceAndTargetTexFile(texFiles).then(function(answers) {
 	sourceContent = readFileContent(answers.source);
 
-	collectTermsInFile(/\\textit{(.*?)}/g, sourceContent)
+	var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString)
+
+	console.log('hi')
+	uniqueTerms = terms.filter((v,i,a) => i === a.indexOf(v)); 
+	console.log(uniqueTerms)
+	console.log('ho')
 
 
 });
 
 
 
-
+function trimString(string) {
+	if(string && string.trim) {
+		return string.trim();
+	}
+	return string;
+}
 
 function collectTermsInFile(regex, fileContent) {
 	const result = [];
 	while ((match = regex.exec( fileContent )) != null)
-{
-    result.push(match[1])
+	{
+    	result.push(match[1])
 	}
-	console.log(result);
+	return result;
 }
 
 function readFileContent(filename) {
