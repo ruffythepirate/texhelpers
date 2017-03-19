@@ -62,9 +62,18 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
 
     const newHeading = getSectionizedString(section, textAsArray[highlightInfo.row], {});
     askReplaceTerm(textAsArray[highlightInfo.row],
-        newHeading);
+        newHeading).then((answers) => {
+            const shouldReplace = answers.check === 'Yes';
+            if(shouldReplace) {
+                textAsArray = replaceInArray(bestIndex, newHeading, textAsArray);
+            }
+            fixSectionRecursive(sectionIterator, textAsArray, bestIndex, onFinished);
+        });
 }
 
+function replaceInArray(index, newRowContent, allRows) {
+   return allRows.map((v,i) => i === index ? newRowContent : v); 
+}
 
 
 function getFileAsArray(filename) {
