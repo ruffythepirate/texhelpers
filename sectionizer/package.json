@@ -2,5 +2,8 @@
   "dependencies": {
     "inquirer": "^3.0.6",
     "terminal-colors": "^0.1.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
   }
 }
