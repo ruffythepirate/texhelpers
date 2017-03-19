@@ -56,7 +56,8 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
     const section = sectionIterator.next();
             
     const bestIndex = ranking.getBestRowIndex(section, textAsArray, lastReplaceIndex);
-    const highlightInfo = outputHelpers.getHighlightInfo(textAsArray[bestIndex],textAsArray[bestIndex], lastReplaceIndex)
+    
+    const highlightInfo = outputHelpers.getHighlightInfo(textAsArray[bestIndex],textAsArray[bestIndex], bestIndex)
     outputHelpers.outputInContext(highlightInfo, textAsArray, console.log);
 
     const newHeading = getSectionizedString(section, textAsArray[highlightInfo.row], {});
