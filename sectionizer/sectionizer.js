@@ -2,6 +2,8 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 require('terminal-colors');
 
+const iterator = require('../common/iterator');
+const stringHelpers = require('../common/StringHelpers');
 const fileHelpers = require('../common/FileHelpers');
 
 if (process.argv.length < 3) {
@@ -24,9 +26,42 @@ fileHelpers.askForSourceAndTargetTexFile(texFiles,
 
         askSections(sections).then((answers) => {
             const fileAsArray = getFileAsArray(target);
-            
+
+            //1 Find correct row.
+            //2 Ask if replace.
+            //3 replace in array.
+            //4 Next 
+
+
         });
     });
+
+
+function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onFinished) {
+    if (!sectionIterator.hasNext()) {
+        onFinished(textAsArray);
+        return;
+    }
+    const section = sectionIterator.next();
+    
+
+}
+
+function getBestRowIndex(section, textAsArray, startIndex) {
+    const remainingRows = textAsArray.slice(lastReplaceIndex);
+
+    var sortedByRelevance = remainingRows.map((v, i) => {return {
+        score: stringHelpers.levenshteinDistance(section.text, v),
+        index: i
+    }}).sort((first, second) => {
+        if(first.score !== second.score) 
+            return second.score - first.score;
+        return first.index - second.index;
+    });
+
+    return sortedByRelevance[0].index;
+}
+
 
 function getFileAsArray(filename) {
     const content = fileHelpers.readFileContent(filename);
