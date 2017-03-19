@@ -33,7 +33,8 @@ fileHelpers.askForSourceAndTargetTexFile(texFiles,
         askOverwriteFile(target).then((answers) => {
             const shouldOverwrite = answers.check == 'Yes';
             if (shouldOverwrite) {
-                overwriteTargetFile(target, textAsArray);
+                const completeText = rebuildText(textAsArray);
+                fileHelpers.overwriteTargetFile(target, completeText);
             }
             awaitInputToExit();
         });

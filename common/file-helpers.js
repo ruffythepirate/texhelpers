@@ -6,6 +6,17 @@ var fileHelpers = module.exports;
 fileHelpers.getTexFiles = getTexFiles;
 fileHelpers.askForSourceAndTargetTexFile = askForSourceAndTargetTexFile;
 fileHelpers.readFileContent = readFileContent;
+fileHelpers.overwriteTargetFile = overwriteTargetFile;
+
+function overwriteTargetFile(filename, text) {
+    try {
+        console.log('overwriting file ' + filename + '...');
+        fs.writeFileSync(filename, text);
+        console.log('successfully overwritten file...');
+    } catch (e) {
+        console.log(e);
+    }
+}
 
 function readFileContent(filename) {
     return fs.readFileSync(filename, { encoding: 'utf8', flag: 'r' });
