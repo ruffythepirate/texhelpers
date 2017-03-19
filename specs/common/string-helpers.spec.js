@@ -1,5 +1,5 @@
 const chai = require('chai');
-const stringHelpers = require('../../common/StringHelpers');
+const stringHelpers = require('../../common/string-helpers');
 
 describe('StringHelpers.levenshteinDistance', () => {
 

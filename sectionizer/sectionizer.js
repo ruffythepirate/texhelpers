@@ -3,8 +3,8 @@ const fs = require('fs');
 require('terminal-colors');
 
 const iterator = require('../common/iterator');
-const stringHelpers = require('../common/StringHelpers');
-const fileHelpers = require('../common/FileHelpers');
+const stringHelpers = require('../common/string-helpers');
+const fileHelpers = require('../common/file-helpers');
 
 if (process.argv.length < 3) {
     console.log('Please input the path to you working directory as a parameter...');

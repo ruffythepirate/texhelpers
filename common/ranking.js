@@ -1,7 +1,7 @@
 const ranking = module.exports;
 ranking.getBestRowIndex = getBestRowIndex;
 
-const stringHelpers = require('./StringHelpers');
+const stringHelpers = require('./string-helpers');
 
 
 function getBestRowIndex(section, textAsArray, startIndex) {

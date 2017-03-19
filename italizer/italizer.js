@@ -2,7 +2,7 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 require('terminal-colors');
 
-const fileHelpers = require('../common/FileHelpers');
+const fileHelpers = require('../common/file-helpers');
 
 if (process.argv.length < 3) {
 	console.log('Please input the path to you working directory as a parameter...');
