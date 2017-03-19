@@ -4,6 +4,7 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const fileHelpers = require('../common/file-helpers');
 const askHelpers = require('../common/ask-helpers');
+const outputHelpers = require('../common/output-helpers');
 
 askOverwriteFile = askHelpers.askOverwriteFile;
 askReplaceTerm = askHelpers.askReplaceTerm;
@@ -130,7 +131,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
     }
 
     const position = termInTextIterator.next();
-    highlightPosition(position, textAsArray);
+    outputHelpers.outputInContext(position, textAsArray, console.log);
     askReplaceTerm(position.term, '\\textit{${position.term}}')
     .then(function(answers) {
         const shouldReplace = answers.check == 'Yes';
