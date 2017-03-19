@@ -3,6 +3,15 @@ const outputHelpers = module.exports;
 require('terminal-colors');
 
 outputHelpers.outputInContext = outputInContext
+outputHelpers.getHighlightInfo	 = getHighlightInfo	
+
+function getHighlightInfo(string, term, index) {
+	return {
+		row: index,
+		term: term,
+		start: string.indexOf(term)
+	};
+}
 
 function outputInContext(highlightInfo, textAsArray, outputMethod) {
 	var i = highlightInfo.row;
@@ -15,6 +24,8 @@ function outputInContext(highlightInfo, textAsArray, outputMethod) {
 }
 
 function getHighlightedRow(highlightInfo, row) {
+	if(highlightInfo.start < 0) return row;
+	
     const start = highlightInfo.start;
     const term = highlightInfo.term;
     return row.substr(0, start) + term.red.underline + row.substr(start + term.length, row.length);

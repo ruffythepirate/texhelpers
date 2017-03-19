@@ -5,6 +5,7 @@ require('terminal-colors');
 const iterator = require('../common/iterator');
 const stringHelpers = require('../common/string-helpers');
 const fileHelpers = require('../common/file-helpers');
+const outputHelpers = require('../common/output-helpers');
 const ranking = require('../common/ranking');
 
 if (process.argv.length < 3) {
@@ -47,7 +48,7 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
     const section = sectionIterator.next();
             
     var bestIndex = ranking.getBestRowIndex(section, textAsArray, lastReplaceIndex);
-
+    outputHelpers.outputInContext(, textAsArray, console.log);
 }
 
 
