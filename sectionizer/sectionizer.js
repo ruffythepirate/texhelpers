@@ -8,8 +8,11 @@ const askHelpers = require('../common/ask-helpers');
 const fileHelpers = require('../common/file-helpers');
 const outputHelpers = require('../common/output-helpers');
 const ranking = require('../common/ranking');
+const sectionizerLogic = require('sectionizer-logic');
 
 askReplaceTerm = askHelpers.askReplaceTerm;
+
+collectSectionsInFile = sectionizerLogic.collectSectionsInFile;
 
 
 if (process.argv.length < 3) {
@@ -60,27 +63,13 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
 }
 
 
+
 function getFileAsArray(filename) {
     const content = fileHelpers.readFileContent(filename);
     return content.split('\n');
 }
 
-function collectSectionsInFile(fileContent) {
-    const result = [];
 
-    const regex = /\\([sub]*section)([*]?)\{(.*)\}/g
-
-    while ((match = regex.exec(fileContent)) != null) {
-        let section = {
-            command: match[1],
-            containsStar: match[2] === '*',
-            text: match[3]
-        };
-
-        result.push(section)
-    }
-    return result;
-}
 
 function askSections(sections) {
     return inquirer.prompt([{
