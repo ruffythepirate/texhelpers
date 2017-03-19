@@ -4,9 +4,13 @@ require('terminal-colors');
 
 const iterator = require('../common/iterator');
 const stringHelpers = require('../common/string-helpers');
+const askHelpers = require('../common/ask-helpers');
 const fileHelpers = require('../common/file-helpers');
 const outputHelpers = require('../common/output-helpers');
 const ranking = require('../common/ranking');
+
+askReplaceTerm = askHelpers.askReplaceTerm;
+
 
 if (process.argv.length < 3) {
     console.log('Please input the path to you working directory as a parameter...');
@@ -25,16 +29,16 @@ fileHelpers.askForSourceAndTargetTexFile(texFiles,
         const sourceContent = fileHelpers.readFileContent(answers.source);
         var sections = collectSectionsInFile(sourceContent)
 
+        const sectionIterator = iterator(sections);
 
         askSections(sections).then((answers) => {
             const fileAsArray = getFileAsArray(target);
 
+            fixSectionRecursive(sectionIterator,
+                fileAsArray,0 ,
+                (transformedText) => {
 
-            //1 Find correct row.
-            //2 Ask if replace.
-            //3 replace in array.
-            //4 Next 
-
+                });
 
         });
     });
@@ -47,8 +51,12 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
     }
     const section = sectionIterator.next();
             
-    var bestIndex = ranking.getBestRowIndex(section, textAsArray, lastReplaceIndex);
-    outputHelpers.outputInContext(, textAsArray, console.log);
+    const bestIndex = ranking.getBestRowIndex(section, textAsArray, lastReplaceIndex);
+    const highlightInfo = outputHelpers.getHighlightInfo(textAsArray[bestIndex],textAsArray[bestIndex], lastReplaceIndex)
+    outputHelpers.outputInContext(highlightInfo, textAsArray, console.log);
+
+    askReplaceTerm(textAsArray[highlightInfo.row],
+        textAsArray[highlightInfo.row]);
 }
 
 

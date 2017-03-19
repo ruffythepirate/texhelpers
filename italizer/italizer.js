@@ -1,8 +1,12 @@
-const inquirer = require('inquirer');
-const fs = require('fs');
 require('terminal-colors');
 
+const inquirer = require('inquirer');
+const fs = require('fs');
 const fileHelpers = require('../common/file-helpers');
+const askHelpers = require('../common/ask-helpers');
+
+askOverwriteFile = askHelpers.askOverwriteFile;
+askReplaceTerm = askHelpers.askReplaceTerm;
 
 if (process.argv.length < 3) {
 	console.log('Please input the path to you working directory as a parameter...');
@@ -127,7 +131,8 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
 
     const position = termInTextIterator.next();
     highlightPosition(position, textAsArray);
-    askReplaceTerm(position.term).then(function(answers) {
+    askReplaceTerm(position.term, '\\textit{${position.term}}')
+    .then(function(answers) {
         const shouldReplace = answers.check == 'Yes';
         if (shouldReplace) {
             position.replace = true;
@@ -180,15 +185,7 @@ function escapeRegExp(str) {
     return result;
 }
 
-function highlightPosition(position, textAsArray) {
-    var i = position.row;
-    const term = position.term;
 
-    printRows(i - 3, i - 1, textAsArray, console.log);
-    const highlightedRow = getHighlightedRow(position, textAsArray[position.row]);
-    console.log(highlightedRow);
-    printRows(i + 1, i + 3, textAsArray, console.log);
-}
 
 function replacePosition(position, textAsArray) {
     const i = position.row;
@@ -199,43 +196,13 @@ function replacePosition(position, textAsArray) {
     return row.substring(0, start) + `\\textit{${term}}` + row.substr(start + term.length, row.length);
 }
 
-function getHighlightedRow(highlightInfo, row) {
-    const start = highlightInfo.start;
-    const term = highlightInfo.term;
-    return row.substr(0, start) + term.red.underline + row.substr(start + term.length, row.length);
-}
 
-function printRows(startIndex, endIndex, textAsArray, printMethod) {
-    startIndex = Math.max(startIndex, 0);
-    endIndex = Math.min(textAsArray.length, endIndex);
-    for (i = startIndex; i < endIndex; i++) {
-        printMethod('> '.red + textAsArray[i]);
-    }
-}
 
 function askCheckTerm(term) {
     return inquirer.prompt([{
         type: 'list',
         name: 'check',
         message: `Should the term '${term}' be checked?`,
-        choices: ['Yes', 'No']
-    }]);
-}
-
-function askReplaceTerm(term) {
-    return inquirer.prompt([{
-        type: 'list',
-        name: 'check',
-        message: `Do you want to overwrite '${term}' with \\textit{${term}}?`,
-        choices: ['Yes', 'No']
-    }]);
-}
-
-function askOverwriteFile(filename) {
-    return inquirer.prompt([{
-        type: 'list',
-        name: 'check',
-        message: `Job finished. Do you want to overwrite the file content of ${filename} with your new content?`,
         choices: ['Yes', 'No']
     }]);
 }
