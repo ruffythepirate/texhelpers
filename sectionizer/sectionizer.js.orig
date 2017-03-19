@@ -3,9 +3,14 @@ const fs = require('fs');
 require('terminal-colors');
 
 const iterator = require('../common/iterator');
+<<<<<<< Updated upstream
 const stringHelpers = require('../common/string-helpers');
 const fileHelpers = require('../common/file-helpers');
+=======
 const ranking = require('../common/ranking');
+const stringHelpers = require('../common/StringHelpers');
+const fileHelpers = require('../common/FileHelpers');
+>>>>>>> Stashed changes
 
 if (process.argv.length < 3) {
     console.log('Please input the path to you working directory as a parameter...');
@@ -47,7 +52,6 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
     const section = sectionIterator.next();
             
     var bestIndex = ranking.getBestRowIndex(section, textAsArray, lastReplaceIndex);
-
 }
 
 
