@@ -133,7 +133,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
 
     const position = termInTextIterator.next();
     outputHelpers.outputInContext(position, textAsArray, console.log);
-    askReplaceTerm(position.term, '\\textit{${position.term}}')
+    askReplaceTerm(position.term, `\\textit{${position.term}}`)
     .then(function(answers) {
         const shouldReplace = answers.check == 'Yes';
         if (shouldReplace) {
