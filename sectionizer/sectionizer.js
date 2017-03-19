@@ -22,9 +22,9 @@ fileHelpers.askForSourceAndTargetTexFile(texFiles,
         var sections = collectSectionsInFile(sourceContent)
 
 
-        askWhichSections(sections).then((answers) => {
+        askSections(sections).then((answers) => {
             const fileAsArray = getFileAsArray(target);
-
+            
         });
     });
 
@@ -50,7 +50,7 @@ function collectSectionsInFile(fileContent) {
     return result;
 }
 
-function askWhichSections(sections) {
+function askSections(sections) {
     return inquirer.prompt([{
         type: 'checkbox',
         message: 'Select Sections',
@@ -61,5 +61,14 @@ function askWhichSections(sections) {
                 checked: true
             }
         })
+    }, {
+        type: 'list',
+        message: 'Preserve ignore section numbers?',
+        name: 'numbers',
+        choices: [
+            { text: 'Preserve from source', value: 'preserve'},
+            { text: 'Always numbers', value: 'always'},
+            { text: 'Never numbers', value: 'never'}
+        ]
     }]);
 }
