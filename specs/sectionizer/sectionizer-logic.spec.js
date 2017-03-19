@@ -4,8 +4,34 @@ const sectionizerLogic = require('../../sectionizer/sectionizer-logic');
 const expect = chai.expect;
 
 const collectSectionsInFile = sectionizerLogic.collectSectionsInFile;
+const getSectionizedString = sectionizerLogic.getSectionizedString;
+
 
 describe('sectionizer-logic.getSectionizedString', () => {
+
+	const rowWithoutWrapping = 'my title...';
+	const rowWithWrapping = '\\subsection*{my title...}';
+	const sectionInfo = {
+		command: 'section',
+		containsStar: true,
+		text: 'my other title...'
+	};
+
+	it('wraps content in section-info', () => {
+		const result = getSectionizedString(sectionInfo, rowWithoutWrapping, {});
+
+		expect(result).to.be.equal('\\section*{my title...}');
+	});
+
+	it('replaces current wrapping', () => {
+		const result = getSectionizedString(sectionInfo, rowWithWrapping, {});
+
+		expect(result).to.be.equal('\\section*{my title...}');
+	});
+});
+
+
+describe('sectionizer-logic.collectSectionsInFile', () => {
 
 	const stringWithoutSection='blabla';
 	const stringWithSectionNoNumbering='blabla \\section*{a section} bla bla';
