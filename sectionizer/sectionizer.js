@@ -8,11 +8,12 @@ const askHelpers = require('../common/ask-helpers');
 const fileHelpers = require('../common/file-helpers');
 const outputHelpers = require('../common/output-helpers');
 const ranking = require('../common/ranking');
-const sectionizerLogic = require('sectionizer-logic');
+const sectionizerLogic = require('./sectionizer-logic');
 
 askReplaceTerm = askHelpers.askReplaceTerm;
 
 collectSectionsInFile = sectionizerLogic.collectSectionsInFile;
+getSectionizedString = sectionizerLogic.getSectionizedString;
 
 
 if (process.argv.length < 3) {
@@ -58,8 +59,9 @@ function fixSectionRecursive(sectionIterator, textAsArray, lastReplaceIndex, onF
     const highlightInfo = outputHelpers.getHighlightInfo(textAsArray[bestIndex],textAsArray[bestIndex], lastReplaceIndex)
     outputHelpers.outputInContext(highlightInfo, textAsArray, console.log);
 
+    const newHeading = getSectionizedString(section, textAsArray[highlightInfo.row], {});
     askReplaceTerm(textAsArray[highlightInfo.row],
-        textAsArray[highlightInfo.row]);
+        newHeading);
 }
 
 
