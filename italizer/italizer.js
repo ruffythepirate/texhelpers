@@ -5,6 +5,7 @@ const fs = require('fs');
 const fileHelpers = require('../common/file-helpers');
 const askHelpers = require('../common/ask-helpers');
 const outputHelpers = require('../common/output-helpers');
+const iterator = require('../common/iterator');
 
 askOverwriteFile = askHelpers.askOverwriteFile;
 askReplaceTerm = askHelpers.askReplaceTerm;
@@ -127,22 +128,41 @@ function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
     });
 }
 
-function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished) {
+function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished, doAll) {
     if (!termInTextIterator.hasNext()) {
         applyTextReplaces(termInTextIterator.data, textAsArray);
+
+        if(doAll) {
+            console.log(`Replaced ${termInTextIterator.data.length} entries`);
+        }
+
         onFinished(textAsArray);
         return;
+    }
+
+    if(doAll) {
+        const position = termInTextIterator.next();
+        position.replace = true;
+        checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished, doAll);
     }
 
     const position = termInTextIterator.next();
     outputHelpers.outputInContext(position, textAsArray, console.log);
     askReplaceTerm(position.term, `\\textit{${position.term}}`)
         .then(function(answers) {
-            const shouldReplace = answers.check == 'Yes';
-            if (shouldReplace) {
+            if(answers.check === 'Skip') {
+                const skippedTerms = termInTextIterator.remainingEntries() + 1;
+                console.log(`Skipping ${skippedTerms} entries`);
+                applyTextReplaces(termInTextIterator.data, textAsArray);
+                onFinished(textAsArray);
+                return;
+            }
+            doAll = doAll || answers.check === 'All';
+            const shouldReplace = doAll || answers.check === 'Yes';
+            if (shouldReplace ) {
                 position.replace = true;
             }
-            checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished);
+            checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished, doAll);
         });
 }
 
@@ -163,16 +183,7 @@ function createTermInTextIterator(term, textAsArray) {
             return a;
         }, []);
 
-    const termInTextIterator = {
-        data: allEntries,
-        index: 0,
-        next: function() {
-            return this.data[this.index++]
-        },
-        hasNext: function() {
-            return this.index < this.data.length
-        }
-    }
+    const termInTextIterator = iterator(allEntries);
 
     return termInTextIterator;
 }

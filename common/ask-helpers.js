@@ -13,7 +13,7 @@ function askReplaceTerm(term, newTerm) {
         type: 'list',
         name: 'check',
         message: `Do you want to overwrite '${term.red.underline}' with ${newTerm.green.underline}?`,
-        choices: ['Yes', 'No']
+        choices: ['Yes', 'No', 'All', 'Skip']
     }]);
 }
 

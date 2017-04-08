@@ -7,7 +7,10 @@ module.exports =
                 return this.data[this.index++]
             },
             hasNext: function() {
-                return this.index < this.data.length
+                return this.index < this.data.length;
+            },
+            remainingEntries: function() {
+                return this.index - this.data.length;
             }
         };
     };
