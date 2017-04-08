@@ -9,6 +9,7 @@ const iterator = require('../common/iterator');
 
 askOverwriteFile = askHelpers.askOverwriteFile;
 askReplaceTerm = askHelpers.askReplaceTerm;
+awaitInputToExit = askHelpers.awaitInputToExit;
 
 if (process.argv.length < 4) {
     console.err('Not enough arguments for italizer. Please use as: node italizer.js [source-file] [target-file]');
@@ -47,14 +48,6 @@ function overwriteTargetFile(filename, textAsArray) {
     }
 }
 
-function awaitInputToExit() {
-    console.log('Press any key to exit');
-
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on('data', process.exit.bind(process, 0));
-}
-
 function rebuildText(textAsArray) {
     return textAsArray.reduce((a, v) => a + v, '');
 }
@@ -62,16 +55,7 @@ function rebuildText(textAsArray) {
 function transformTarget(targetContent, terms, onFinished) {
     if (terms.length < 1) return;
 
-    const termIterator = {
-        terms: terms,
-        index: 0,
-        next: function() {
-            return this.terms[this.index++]
-        },
-        hasNext: function() {
-            return this.index < this.terms.length
-        }
-    }
+    const termIterator = iterator(terms);
 
     var textAsArray = splitByNewline(targetContent);
 
@@ -132,7 +116,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
     if (!termInTextIterator.hasNext()) {
         applyTextReplaces(termInTextIterator.data, textAsArray);
 
-        if(doAll) {
+        if (doAll) {
             console.log(`Replaced ${termInTextIterator.data.length} entries`);
         }
 
@@ -140,7 +124,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
         return;
     }
 
-    if(doAll) {
+    if (doAll) {
         const position = termInTextIterator.next();
         position.replace = true;
         checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished, doAll);
@@ -150,7 +134,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
     outputHelpers.outputInContext(position, textAsArray, console.log);
     askReplaceTerm(position.term, `\\textit{${position.term}}`)
         .then(function(answers) {
-            if(answers.check === 'Skip') {
+            if (answers.check === 'Skip') {
                 const skippedTerms = termInTextIterator.remainingEntries() + 1;
                 console.log(`Skipping ${skippedTerms} entries`);
                 applyTextReplaces(termInTextIterator.data, textAsArray);
@@ -159,7 +143,7 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
             }
             doAll = doAll || answers.check === 'All';
             const shouldReplace = doAll || answers.check === 'Yes';
-            if (shouldReplace ) {
+            if (shouldReplace) {
                 position.replace = true;
             }
             checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished, doAll);
@@ -176,7 +160,7 @@ function applyTextReplaces(positions, textAsArray) {
 function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
-        .map((v, i) => locations(new RegExp('(?!\\textit\{)' +
+        .map((v, i) => findLocations(new RegExp('(?!\\textit\{)' +
             escapeRegExp(term), 'g'), v))
         .reduce((a, v, i) => {
             v.forEach(v => a.push({ row: i, start: v, term: term }));
@@ -188,10 +172,22 @@ function createTermInTextIterator(term, textAsArray) {
     return termInTextIterator;
 }
 
-function locations(regex, string) {
+function findLocations(regex, string) {
     const a = [];
+    const enclosedIndexes = findEnclosedIndexes(string);
     while ((match = regex.exec(string)) != null) {
-        a.push(match.index);
+        if (!enclosedIndexes.find(a => a.start <= match.index && a.stop >= match.index)) {
+            a.push(match.index);
+        }
+    }
+    return a;
+}
+
+function findEnclosedIndexes(string) {
+    const a = [];
+    const textitRegex = /\\textit{(.*?)}/g
+    while ((match = textitRegex.exec(string)) != null) {
+        a.push({ start: match.index, stop: match.index + match[0].length });
     }
     return a;
 }
