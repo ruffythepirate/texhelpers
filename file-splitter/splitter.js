@@ -57,7 +57,8 @@ console.log(chapters);
 chapters.forEach(c => extractToFile(fileToSplitContent, c.startIndex, c.endIndex, buildName(c.beginning)));
 
 function buildName(beginning) {
-    return `${fileToSplit}-${beginning}`;
+    const partName = beginning.replace(/[^0-9a-z]/gi, '');
+    return `${fileToSplit}-${partName}`;
 }
 
 function extractToFile(allContent, startIndex, endIndex, fileName) {
