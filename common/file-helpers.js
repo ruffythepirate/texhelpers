@@ -7,6 +7,7 @@ fileHelpers.getTexFiles = getTexFiles;
 fileHelpers.askForSourceAndTargetTexFile = askForSourceAndTargetTexFile;
 fileHelpers.readFileContent = readFileContent;
 fileHelpers.overwriteTargetFile = overwriteTargetFile;
+fileHelpers.writeFile = writeFile;
 
 function overwriteTargetFile(filename, text) {
     try {
@@ -15,6 +16,16 @@ function overwriteTargetFile(filename, text) {
         console.log('successfully overwritten file...');
     } catch (e) {
         console.log(e);
+    }
+}
+
+function writeFile(filename, text) {
+    try {
+        console.log('Creating file ' + filename + '...');
+        fs.writeFileSync(filename, text);
+        console.log('Successfully written file.');
+    } catch (e) {
+        console.err(e);
     }
 }
 
