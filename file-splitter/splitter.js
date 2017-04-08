@@ -8,7 +8,7 @@ const outputHelpers = require('../common/output-helpers');
 
 if (process.argv.length < 3) {
     console.log('Format: splitter [file-to-split] [file-with-chapter beginnings]');
-    awaitInputToExit();
+    askHelpers.awaitInputToExit();
 }
 
 const fileToSplit = process.argv[2];
@@ -68,7 +68,7 @@ function extractToFile(allContent, startIndex, endIndex, fileName) {
     }
     const contentToWrite = allContent
         .slice(startIndex, endIndex)
-        .reduce((a, v) => a + v, '');
+        .reduce((a, v) => a + v + '\n', '');
 
     fileHelpers.writeFile(fileName, contentToWrite);
 }

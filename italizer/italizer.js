@@ -9,35 +9,29 @@ const outputHelpers = require('../common/output-helpers');
 askOverwriteFile = askHelpers.askOverwriteFile;
 askReplaceTerm = askHelpers.askReplaceTerm;
 
-if (process.argv.length < 3) {
-	console.log('Please input the path to you working directory as a parameter...');
-	awaitInputToExit();
+if (process.argv.length < 4) {
+    console.err('Not enough arguments for italizer. Please use as: node italizer.js [source-file] [target-file]');
+    console.log('Please input the path to you working directory as a parameter...');
+    awaitInputToExit();
 }
 
-var folder = process.argv[2];
+const source = process.argv[2];
+const target = process.argv[3];
 
-const texFiles = fileHelpers.getTexFiles(folder);
+const sourceContent = fileHelpers.readFileContent(source);
 
-fileHelpers.askForSourceAndTargetTexFile(texFiles,
-		'Select file that contains italized words.',
-		'Select file that should get words italized')
-	.then(function(answers) {
-    const sourceContent = fileHelpers.readFileContent(answers.source);
-
-    var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString)
-    uniqueTerms = terms.filter((v, i, a) => i === a.indexOf(v));
-    warnIfTermsAreSubsetOfOthers(uniqueTerms);
-    const target = answers.target;
-    const targetContent = fileHelpers.readFileContent(target);
-    transformTarget(targetContent, uniqueTerms, (textAsArray) => {
-        askOverwriteFile(target).then((answers) => {
-            const shouldOverwrite = answers.check == 'Yes';
-            if (shouldOverwrite) {
-                const completeText = rebuildText(textAsArray);
-                fileHelpers.overwriteTargetFile(target, completeText);
-            }
-            awaitInputToExit();
-        });
+var terms = collectTermsInFile(/\\textit{(.*?)}/g, sourceContent).map(trimString).filter(a => a).sort((a, b) => b.length - a.length);
+uniqueTerms = terms.filter((v, i, a) => i === a.indexOf(v));
+warnIfTermsAreSubsetOfOthers(uniqueTerms);
+const targetContent = fileHelpers.readFileContent(target);
+transformTarget(targetContent, uniqueTerms, (textAsArray) => {
+    askOverwriteFile(target).then((answers) => {
+        const shouldOverwrite = answers.check == 'Yes';
+        if (shouldOverwrite) {
+            const completeText = rebuildText(textAsArray);
+            fileHelpers.overwriteTargetFile(target, completeText);
+        }
+        awaitInputToExit();
     });
 });
 
@@ -85,26 +79,26 @@ function transformTarget(targetContent, terms, onFinished) {
 }
 
 function splitBySentence(text) {
-	var regEx = /[.\n]/g
-	const tokens = [];
-	var lastIndex = 0
-	while( (match = regEx.exec(text)) != null) {
-		var thisIndex = Math.min(match.index + 1, text.length)
-		tokens.push(text.substring(lastIndex, thisIndex));
-		lastIndex = thisIndex;
-	}
+    var regEx = /[.\n]/g
+    const tokens = [];
+    var lastIndex = 0
+    while ((match = regEx.exec(text)) != null) {
+        var thisIndex = Math.min(match.index + 1, text.length)
+        tokens.push(text.substring(lastIndex, thisIndex));
+        lastIndex = thisIndex;
+    }
 
-	if(lastIndex < text.length) {
-		tokens.push(text.substring(lastIndex, text.length));
-	}
- 
-    assert( text.length === tokens.reduce((a,v) => a+v.length, 0), 'Split text has lost chars..!');
+    if (lastIndex < text.length) {
+        tokens.push(text.substring(lastIndex, text.length));
+    }
+
+    assert(text.length === tokens.reduce((a, v) => a + v.length, 0), 'Split text has lost chars..!');
 
     return tokens;
 }
 
 function assert(condition, message) {
-	if(!condition) throw message;
+    if (!condition) throw message;
 }
 
 function askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished) {
@@ -134,13 +128,13 @@ function checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinishe
     const position = termInTextIterator.next();
     outputHelpers.outputInContext(position, textAsArray, console.log);
     askReplaceTerm(position.term, `\\textit{${position.term}}`)
-    .then(function(answers) {
-        const shouldReplace = answers.check == 'Yes';
-        if (shouldReplace) {
-            position.replace = true;
-        }
-        checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished);
-    });
+        .then(function(answers) {
+            const shouldReplace = answers.check == 'Yes';
+            if (shouldReplace) {
+                position.replace = true;
+            }
+            checkNextTermInTextRecursive(termInTextIterator, textAsArray, onFinished);
+        });
 }
 
 function applyTextReplaces(positions, textAsArray) {
@@ -154,7 +148,7 @@ function createTermInTextIterator(term, textAsArray) {
     const allEntries =
         textAsArray
         .map((v, i) => locations(new RegExp('(?!\\textit\{)' +
-        	escapeRegExp(term), 'g'), v))
+            escapeRegExp(term), 'g'), v))
         .reduce((a, v, i) => {
             v.forEach(v => a.push({ row: i, start: v, term: term }));
             return a;
