@@ -72,14 +72,18 @@ function transformTarget(targetContent, terms, onFinished) {
         }
     }
 
-    var textAsArray = splitBySentence(targetContent);
+    var textAsArray = splitByNewline(targetContent);
 
     askAndCheckNextTermRecursive(termIterator, textAsArray, onFinished);
 
 }
 
-function splitBySentence(text) {
-    var regEx = /[.\n]/g
+function splitByNewline(text) {
+    var regEx = /[\n]/g
+    return splitByRegex(text, regEx);
+}
+
+function splitByRegex(text, regEx) {
     const tokens = [];
     var lastIndex = 0
     while ((match = regEx.exec(text)) != null) {
@@ -95,6 +99,11 @@ function splitBySentence(text) {
     assert(text.length === tokens.reduce((a, v) => a + v.length, 0), 'Split text has lost chars..!');
 
     return tokens;
+}
+
+function splitBySentence(text) {
+    var regEx = /[.\n]/g
+    return splitByRegex(text, regEx);
 }
 
 function assert(condition, message) {
