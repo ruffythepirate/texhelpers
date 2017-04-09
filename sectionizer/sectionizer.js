@@ -12,47 +12,41 @@ const sectionizerLogic = require('./sectionizer-logic');
 
 askReplaceTerm = askHelpers.askReplaceTerm;
 askOverwriteFile = askHelpers.askOverwriteFile;
+awaitInputToExit = askHelpers.awaitInputToExit;
 
 collectSectionsInFile = sectionizerLogic.collectSectionsInFile;
 getSectionizedString = sectionizerLogic.getSectionizedString;
 
 
-if (process.argv.length < 3) {
-    console.log('Please input the path to you working directory as a parameter...');
+if (process.argv.length < 4) {
+    console.err('Not enough arguments for sectionizer. Please use as: node sectionizer.js [source-file] [target-file]');
     awaitInputToExit();
 }
 
-var folder = process.argv[2];
+var sourceFile = process.argv[2];
+var targetFile = process.argv[3];
 
-const texFiles = fileHelpers.getTexFiles(folder);
+const sourceContent = fileHelpers.readFileContent(sourceFile);
+var sections = collectSectionsInFile(sourceContent)
 
-fileHelpers.askForSourceAndTargetTexFile(texFiles,
-        'Select file that contains sections.',
-        'Select file that should get section data written to it.')
-    .then(function(answers) {
-        const target = answers.target;
-        const sourceContent = fileHelpers.readFileContent(answers.source);
-        var sections = collectSectionsInFile(sourceContent)
+const sectionIterator = iterator(sections);
 
-        const sectionIterator = iterator(sections);
+askSections(sections).then((answers) => {
+    const fileAsArray = getFileAsArray(targetFile);
 
-        askSections(sections).then((answers) => {
-            const fileAsArray = getFileAsArray(target);
-
-            fixSectionRecursive(sectionIterator,
-                fileAsArray, 0,
-                (transformedText) => {
-                    askOverwriteFile(target).then((answers) => {
-                        const shouldOverwrite = answers.check == 'Yes';
-                        if (shouldOverwrite) {
-                            const completeText = rebuildText(textAsArray);
-                            fileHelpers.overwriteTargetFile(target, completeText);
-                        }
-                        awaitInputToExit();
-                    });
-                });
+    fixSectionRecursive(sectionIterator,
+        fileAsArray, 0,
+        (transformedText) => {
+            askOverwriteFile(target).then((answers) => {
+                const shouldOverwrite = answers.check == 'Yes';
+                if (shouldOverwrite) {
+                    const completeText = rebuildText(textAsArray);
+                    fileHelpers.overwriteTargetFile(target, completeText);
+                }
+                awaitInputToExit();
+            });
         });
-    });
+});
 
 function rebuildText(textAsArray) {
     return textAsArray.reduce((a, v) => a + v + '\n', '');

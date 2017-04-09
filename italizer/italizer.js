@@ -13,7 +13,6 @@ awaitInputToExit = askHelpers.awaitInputToExit;
 
 if (process.argv.length < 4) {
     console.err('Not enough arguments for italizer. Please use as: node italizer.js [source-file] [target-file]');
-    console.log('Please input the path to you working directory as a parameter...');
     awaitInputToExit();
 }
 
